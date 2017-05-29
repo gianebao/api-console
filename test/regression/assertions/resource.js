@@ -130,11 +130,26 @@ function Resource (poName) {
   };
 
   this.ifShowsResponseExample = function (resource, expectedValue) {
-    var examples = this.po.getReponseExamples(resource);
+    var examples = this.po.getResponseExamples(resource);
 
     expect(examples.getText()).toEqual(expectedValue);
   };
-}
 
+  this.ifShowsResponseSchemaExample = function (resource, expectedValue) {
+    var examples = this.po.getResponseSchemaExamples(resource);
+
+    expect(examples.getText()).toEqual(expectedValue);
+  };
+
+  this.ifShowsRequestUrl = function (resource, expectedValue) {
+    var request = this.po.getRequestUrl(resource);
+    expect(request.getText()).toEqual(expectedValue);
+  };
+
+  this.ifMethodIsOpen = function (resource, isOpen) {
+    var panel = this.po.getResourcePanel(resource);
+    expect(panel.isPresent()).toBe(isOpen);
+  };
+}
 
 module.exports = Resource;

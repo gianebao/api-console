@@ -6,11 +6,32 @@
       restrict: 'E',
       templateUrl: 'directives/documentation.tpl.html',
       controller: ['$scope', function($scope) {
-        var defaultSchemaKey = Object.keys($scope.securitySchemes).sort()[0];
-        var defaultSchema    = $scope.securitySchemes[defaultSchemaKey];
-
         $scope.markedOptions = RAML.Settings.marked;
-        $scope.documentationSchemeSelected = defaultSchema;
+
+        $scope.$watch('securitySchemes', function() {
+          var defaultSchemaKey = Object.keys($scope.securitySchemes).sort()[0];
+          var defaultSchema    = $scope.securitySchemes[defaultSchemaKey];
+
+          $scope.documentationSchemeSelected = defaultSchema;
+
+          if (defaultSchema.describedBy && defaultSchema.describedBy.responses) {
+            $scope.schemaResponses = defaultSchema.describedBy.responses;
+          }
+        });
+
+        $scope.changeSchemaType = function ($event, type, code) {
+          var $this        = jQuery($event.currentTarget);
+          var $panel       = $this.closest('.raml-console-resource-body-heading');
+          var $eachContent = $panel.find('span');
+
+          $eachContent.removeClass('raml-console-is-active');
+          $this.addClass('raml-console-is-active');
+
+          if (!$scope.schemaResponses[code]) {
+            $scope.schemaResponses[code] = {};
+          }
+          $scope.schemaResponses[code].currentType = type;
+        };
 
         function mergeResponseCodes(methodCodes, schemas) {
           var extractSchema = function (key) { return schemas.hasOwnProperty(key) ? schemas[key] : undefined; };
@@ -49,8 +70,12 @@
             });
           }
         }
-        $scope.fullResponses = mergeResponseCodes($scope.methodInfo.responses || {}, $scope.methodInfo.securitySchemes());
-        $scope.fullResponseCodes = Object.keys($scope.fullResponses);
+        $scope.$watch('methodInfo', function () {
+          if ($scope.methodInfo.responses && $scope.methodInfo.securitySchemes) {
+            $scope.fullResponses = mergeResponseCodes($scope.methodInfo.responses || {}, $scope.methodInfo.securitySchemes());
+            $scope.fullResponseCodes = Object.keys($scope.fullResponses);
+          }
+        });
 
         $scope.isSchemeSelected = function isSchemeSelected(scheme) {
           return scheme.id === $scope.documentationSchemeSelected.id;
@@ -234,6 +259,16 @@
           $elements.removeClass('raml-console-is-active');
           $container.find('.raml-console-body-' + $scope.getBodyId(value)).addClass('raml-console-is-active');
         });
+
+        $scope.$watch('methodInfo.responses', function (responses) {
+          $scope.methodInfo.responses = responses;
+          $scope.methodInfo.securitySchemes && ($scope.fullResponses = mergeResponseCodes($scope.methodInfo.responses || {}, $scope.methodInfo.securitySchemes()));
+          $scope.fullResponseCodes = Object.keys($scope.fullResponses);
+          if ($scope.fullResponseCodes && $scope.fullResponseCodes.length > 0) {
+            $scope.currentStatusCode = $scope.fullResponseCodes[0];
+          }
+        });
+
       }],
       replace: true
     };

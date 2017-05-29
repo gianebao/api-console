@@ -7,13 +7,18 @@
       templateUrl: 'directives/named-parameters.tpl.html',
       replace: true,
       scope: {
-        src: '=',
         context: '=',
         types: '=',
+        uploadRequest: '=',
         type: '@',
         title: '@'
       },
       controller: ['$scope', '$attrs', function ($scope, $attrs) {
+
+        $scope.keys = function(obj) {
+          return Object.keys(obj);
+        };
+
         $scope.markedOptions = RAML.Settings.marked;
 
         if ($attrs.hasOwnProperty('enableCustomParameters')) {
